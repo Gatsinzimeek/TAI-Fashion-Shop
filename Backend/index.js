@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import router from './Routes/UserRoutes.js'
 import { notFound, errorHandler } from './Middleware/ErrorMiddleWare.js';
+import cookieParser from 'cookie-parser';
 import { connectDB } from './config/db.js';
 dotenv.config();
 
@@ -12,7 +13,8 @@ const app = express();
 
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
-app.use('/api/user', router)
+app.use(cookieParser())
+app.use('/api/Auth', router)
 app.get('/', (req,res) => res.send('server is ready'));
 app.use(notFound)
 app.use(errorHandler)

@@ -4,9 +4,20 @@ import gerateToken from '../utils/generateToken.js';
 // route POST /api/user/auth
 export const AuthUser = asyncHandler(async (req, res) => {
 
-    res.status(200).json({
-        message: 'Auth user'
-    })
+    const {Email, password} = req.body;
+    const user = await User.findOne({Email});
+    if(user && (await user.matchpassword(password))) {
+        gerateToken(res,user._id)
+        res.status(201).json({
+            id: user._id,
+            name: user.username,
+            Email: user.Email
+        })
+    }else{
+        res.status(401);
+        throw new Error('Invalid username or password')
+    }
+
 });
 
 // route POST /api/user
@@ -47,14 +58,20 @@ export const RegisterUser = asyncHandler(async (req, res) => {
 // route POST /api/user/logout
 
 export const LogoutUser = asyncHandler(async (req, res) => {
+    res.cookie('jwt','', {
+        httpOnly: true,
+        expires: new Date(0),
+    })
+
+
     res.status(200).json({
-        message: 'Logout user'
+        message: 'user Logout',
     })
 });
 
 // route GET /api/user/profile
 export const GettingUserProfile = asyncHandler(async (req, res) => {
-
+    console.log(req.user);
     res.status(200).json({
         message: 'Receive User Profile'
     })
@@ -64,7 +81,26 @@ export const GettingUserProfile = asyncHandler(async (req, res) => {
 // route PUT /api/user/profile
 export const UpdatedUserProfile = asyncHandler(async (req, res) => {
 
-    res.status(200).json({
-        message: 'Upadate User Profile'
-    })
+    const user = await User.findById(req.user.id);
+
+    if(user) {
+        user.Email = req.body.Email || user.Email;
+        user.name = req.body.name || user.name;
+        if(req.body.password){
+            user.password = req.body.password;
+        }
+        const UpdatedUser = await user.save();
+        res.status(201).json({
+            id: UpdatedUser._id,
+            name: UpdatedUser.name,
+            email: UpdatedUser.Email, 
+        });
+        
+        
+    }else{
+        res.status(404)
+        throw new Error('User not Found');
+    }
+
+   
 });
