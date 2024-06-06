@@ -89,14 +89,17 @@ export const UpdatedUserProfile = asyncHandler(async (req, res) => {
         if(req.body.password){
             user.password = req.body.password;
         }
-        const UpdatedUser = await user.save();
-        res.status(201).json({
-            id: UpdatedUser._id,
-            name: UpdatedUser.name,
-            email: UpdatedUser.Email, 
-        });
-        
-        
+        try {
+            const updatedUser = await user.save();
+            res.status(200).json({
+                id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.Email, 
+            });
+        } catch (error) {
+            res.status(500);
+            throw new Error('Error updating user profile');
+        }
     }else{
         res.status(404)
         throw new Error('User not Found');
